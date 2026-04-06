@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlowMind — Multi-Agent Productivity OS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0f;--surf:#13131a;--bdr:#1e1e2e;--acc:#7c3aed;--acc2:#06b6d4;--txt:#e2e8f0;--mut:#64748b;--ok:#10b981;--warn:#f59e0b}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',system-ui,sans-serif;min-height:100vh}
+header{padding:1rem 1.5rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:10px;background:var(--surf)}
+.logo{width:32px;height:32px;background:linear-gradient(135deg,var(--acc),var(--acc2));border-radius:8px;display:grid;place-items:center;font-size:16px;flex-shrink:0}
+header h1{font-size:1.1rem;font-weight:600}
+.badge{margin-left:auto;font-size:11px;padding:3px 10px;border-radius:20px;background:#10b98118;color:var(--ok);border:1px solid #10b98130;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+main{display:grid;grid-template-columns:1fr 300px;height:calc(100vh - 57px)}
+.chat{display:flex;flex-direction:column;border-right:1px solid var(--bdr)}
+.msgs{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:8px}
+.m{max-width:86%;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.6}
+.m.u{align-self:flex-end;background:var(--acc);color:#fff;border-bottom-right-radius:3px}
+.m.a{align-self:flex-start;background:var(--surf);border:1px solid var(--bdr);border-bottom-left-radius:3px}
+.m.t{align-self:flex-start;color:var(--mut);font-size:12px;font-style:italic;padding:6px 10px;border:1px dashed var(--bdr);border-radius:8px}
+.lbl{font-size:10px;font-weight:600;color:var(--acc2);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.chip{font-size:10px;padding:2px 8px;border-radius:12px;font-weight:500}
+.ct{background:#7c3aed18;color:#a78bfa;border:1px solid #7c3aed30}
+.cc{background:#06b6d418;color:#67e8f9;border:1px solid #06b6d430}
+.cn{background:#10b98118;color:#6ee7b7;border:1px solid #10b98130}
+.qrow{padding:8px 12px;border-top:1px solid var(--bdr);display:flex;gap:6px;overflow-x:auto;flex-shrink:0}
+.qrow::-webkit-scrollbar{display:none}
+.qp{font-size:11px;padding:4px 10px;border-radius:14px;border:1px solid var(--bdr);color:var(--mut);cursor:pointer;white-space:nowrap;background:var(--surf);flex-shrink:0;transition:all .15s}
+.qp:hover{border-color:var(--acc);color:var(--txt)}
+.irow{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--bdr);flex-shrink:0;background:var(--surf)}
+.irow input{flex:1;background:var(--bg);border:1px solid var(--bdr);color:var(--txt);padding:8px 12px;border-radius:8px;font-size:13px;outline:none;transition:border .2s}
+.irow input:focus{border-color:var(--acc)}
+.irow input::placeholder{color:var(--mut)}
+.sbtn{background:var(--acc);color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;transition:opacity .15s}
+.sbtn:hover{opacity:.85}
+.sbtn:disabled{opacity:.35;cursor:not-allowed}
+.side{overflow-y:auto;background:var(--surf)}
+.sec{border-bottom:1px solid var(--bdr);padding:12px 14px}
+.sec h3{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.cnt{background:var(--acc);color:#fff;border-radius:8px;padding:1px 6px;font-size:9px}
+.ag{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;border:1px solid var(--bdr);margin-bottom:5px;background:var(--bg);font-size:12px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--ok);flex-shrink:0}
+.ag-n{font-weight:500}
+.ag-s{font-size:10px;color:var(--mut)}
+.card{padding:7px 9px;border-radius:8px;border:1px solid var(--bdr);margin-bottom:5px;background:var(--bg)}
+.card-t{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.card-m{font-size:10px;color:var(--mut)}
+.ph{color:var(--warn)}
+.empty{font-size:11px;color:var(--mut);text-align:center;padding:10px 0}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">⚡</div>
+  <h1>FlowMind</h1>
+  <span style="font-size:11px;color:var(--mut);margin-left:2px">Multi-Agent OS</span>
+  <div class="badge">● Live on Google Cloud</div>
+</header>
+<main>
+  <div class="chat">
+    <div class="msgs" id="msgs">
+      <div class="m a">
+        <div class="lbl">Orchestrator</div>
+        Hello! I coordinate your Task, Calendar, and Notes agents from a single instruction. Try an example below or type anything.
+      </div>
+    </div>
+    <div class="qrow">
+      <div class="qp" onclick="sq(this)">Product launch Friday — create tasks, block prep time, save checklist</div>
+      <div class="qp" onclick="sq(this)">Add 3 high priority sprint tasks for this week</div>
+      <div class="qp" onclick="sq(this)">Save meeting notes: Q2 review, hiring plan, OKRs</div>
+      <div class="qp" onclick="sq(this)">Schedule 1hr design review tomorrow morning</div>
+    </div>
+    <div class="irow">
+      <input id="inp" type="text" placeholder="Ask FlowMind anything..." onkeydown="if(event.key==='Enter')send()"/>
+      <button class="sbtn" id="sbtn" onclick="send()">Send ↗</button>
+    </div>
+  </div>
+  <div class="side">
+    <div class="sec">
+      <h3>Agent Network</h3>
+      <div class="ag"><div class="dot"></div><div><div class="ag-n">Orchestrator</div><div class="ag-s">Gemini 2.5 · plans & delegates</div></div></div>
+      <div class="ag"><div class="dot"></div><div><div class="ag-n">Task Agent</div><div class="ag-s">Firestore MCP · CRUD</div></div></div>
+      <div class="ag"><div class="dot"></div><div><div class="ag-n">Calendar Agent</div><div class="ag-s">Events · scheduling</div></div></div>
+      <div class="ag"><div class="dot"></div><div><div class="ag-n">Notes Agent</div><div class="ag-s">Save · search · tag</div></div></div>
+    </div>
+    <div class="sec">
+      <h3>Tasks <span class="cnt" id="tc">0</span></h3>
+      <div id="tl"><div class="empty">No tasks yet</div></div>
+    </div>
+    <div class="sec">
+      <h3>Events <span class="cnt" id="ec">0</span></h3>
+      <div id="el"><div class="empty">No events yet</div></div>
+    </div>
+    <div class="sec">
+      <h3>Notes <span class="cnt" id="nc">0</span></h3>
+      <div id="nl"><div class="empty">No notes yet</div></div>
+    </div>
+  </div>
+</main>
+<script>
+const API='',UID='demo-user';
+let tasks=[],evts=[],notes=[];
+
+function addMsg(cls,html,chips){
+  const c=document.getElementById('msgs'),d=document.createElement('div');
+  d.className='m '+cls;
+  d.innerHTML=(cls==='a'?'<div class="lbl">Orchestrator</div>':'')+html;
+  if(chips&&chips.length){
+    const r=document.createElement('div');r.className='chips';
+    chips.forEach(({t,l})=>{const s=document.createElement('span');s.className='chip c'+t;s.textContent=l;r.appendChild(s);});
+    d.appendChild(r);
+  }
+  c.appendChild(d);c.scrollTop=c.scrollHeight;return d;
+}
+
+async function send(){
+  const inp=document.getElementById('inp'),btn=document.getElementById('sbtn');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';btn.disabled=true;
+  addMsg('u',msg);
+  const th=addMsg('t','Orchestrating agents...');
+  try{
+    const res=await fetch(API+'/workflow',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:UID,message:msg})});
+    const d=await res.json();th.remove();
+    if(d.detail){addMsg('a','Error: '+d.detail);btn.disabled=false;return;}
+    const chips=(d.actions_taken||[]).map(a=>({
+      t:a.agent==='task_agent'?'t':a.agent==='calendar_agent'?'c':'n',
+      l:a.agent==='task_agent'?`tasks (${a.count||1})`:a.agent==='calendar_agent'?'event scheduled':'note saved'
+    }));
+    addMsg('a','<strong>'+d.summary+'</strong><br><span style="font-size:11px;color:var(--mut)">'+d.plan+'</span>',chips);
+    await refresh();
+  }catch(e){th.remove();addMsg('a','Network error — is the API running?');}
+  btn.disabled=false;
+}
+
+function sq(el){document.getElementById('inp').value=el.textContent;send();}
+
+async function refresh(){
+  try{
+    const [t,n]=await Promise.all([
+      fetch(API+'/tasks/'+UID).then(r=>r.json()),
+      fetch(API+'/notes/'+UID).then(r=>r.json())
+    ]);
+    tasks=t.tasks||[];notes=n.notes||[];render();
+  }catch(e){}
+}
+
+function render(){
+  document.getElementById('tc').textContent=tasks.length;
+  document.getElementById('nc').textContent=notes.length;
+  const tl=document.getElementById('tl');
+  tl.innerHTML=tasks.length?tasks.slice(-6).reverse().map(t=>`<div class="card"><div class="card-t">${t.title}</div><div class="card-m"><span class="${t.priority==='high'?'ph':''}">${t.priority}</span> · ${t.status}</div></div>`).join(''):'<div class="empty">No tasks yet</div>';
+  const nl=document.getElementById('nl');
+  nl.innerHTML=notes.length?notes.slice(-4).reverse().map(n=>`<div class="card"><div class="card-t">${n.title}</div><div class="card-m">${(n.content||'').slice(0,55)}...</div></div>`).join(''):'<div class="empty">No notes yet</div>';
+}
+
+refresh();
+</script>
+</body>
+</html>
